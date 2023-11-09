@@ -164,7 +164,11 @@ time.sleep(1)
 pyautogui.click(180,240,duration=1)
 pyautogui.write("5")
 pyautogui.click(208,287,duration=1)
-pyautogui.write("RPU")
+
+#pyautogui.write("RPU") RIBEIRAO PRETO
+pyautogui.write("BUYTBY") #CAÇAPAVA
+
+
 pyautogui.click(574,263,duration=1)
 pyautogui.press("home")
 pyautogui.write(dia_anterior)
