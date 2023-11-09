@@ -219,14 +219,14 @@ for x in range(emissao):
 
     #ENCERRAR MDF
     pyautogui.click(383,77)
-    time.sleep(2)
+    time.sleep(5)
     pyautogui.click(751,176)
-    time.sleep(2)
+    time.sleep(5)
     pyautogui.click(1156,63)
     pyautogui.click(1156,63)
-    time.sleep(2)
+    time.sleep(5)
     pyautogui.click(1156,63)
-    time.sleep(2)
+    time.sleep(5)
 
 #ABRINDO O BUSCAR
 pyautogui.click(934,75)
@@ -293,9 +293,9 @@ for x in range(emissao):
     
     #ENVIAR MDF
     pyautogui.click(394,84,duration=1)
-    time.sleep(1)
+    time.sleep(2)
     pyautogui.click(581,173,duration=1)
-    time.sleep(1)
+    time.sleep(2)
     pyautogui.click(712,435,duration=1)
     time.sleep(10)
     pyautogui.click(1164,65,duration=1)
