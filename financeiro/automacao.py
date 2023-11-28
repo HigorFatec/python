@@ -9,13 +9,13 @@ pyautogui.PAUSE = 0.5
 pyautogui.alert("COMEÇANDO")
 
 #CLICK EM "FLUXO DE CAIXA"
-pyautogui.click(211,28,duration=1)
+pyautogui.click(211,28)
 
 #CLICK EM "MOVIMENTAÇÃO"
-pyautogui.click(230,67,duration=1)
+pyautogui.click(230,67)
 
 #CLICK EM "ENTRADAS CONTA PAGAR"
-pyautogui.click(369,65,duration=1)
+pyautogui.click(369,65)
 
 
 #INICIANDO ESTRUTURA DE REPETIÇÃO
@@ -30,7 +30,7 @@ with open('saida.txt','r') as arquivo:
         filial = linha.split(';')[5]
         
         #CLICANDO NO CAMPO FORNECEDOR
-        pyautogui.click(202,183,duration=1)
+        pyautogui.click(202,183)
         pyautogui.write("3192")
         pyautogui.press("enter")
 
@@ -73,29 +73,33 @@ with open('saida.txt','r') as arquivo:
         pyautogui.write(valor)
         
         #ANOTAÇÃO DE REFERENCIA
-        pyautogui.click(366,515,duration=1)
+        pyautogui.click(366,515)
         pyautogui.write('PAGAMENTO AUTOMATICO F&R')
 
         #SALVAR DADOS
-        pyautogui.hotkey('ctrl','s')
+        pyautogui.hotkey('alt','s')
         
         #ACESSANDO PARCELAS
-        pyautogui.click(112,157,duration=1)
+        pyautogui.click(112,157)
 
         #INSERE NOVO ITEM
-        pyautogui.click(20,187,duration=1)
+        pyautogui.click(20,187)
+        
+        sleep(1)
+        #CLICANDO EM SIM EM CASO DE SABADOS
+        pyautogui.click(1111,587)
         
         #CONFIRMANDO
-        pyautogui.click(853,184,duration=1)
+        pyautogui.click(853,184)
         
         #ACESSANDO A ABA DE CLASSIFICAÇÃO
-        pyautogui.click(229,155,duration=1)
+        pyautogui.click(229,155)
 
         #INSERINDO NOVO ITEM
-        pyautogui.click(33,203,duration=1)
+        pyautogui.click(33,203)
 
         #ACESSANDO CAMPO DE UNIDADE DE NEGOCIO
-        pyautogui.click(241,203,duration=1)
+        pyautogui.click(241,203)
 
         #INSERINDO DADOS PADRÕES DE CLASSIFICAÇÃO
         pyautogui.write("19")
@@ -109,13 +113,20 @@ with open('saida.txt','r') as arquivo:
         pyautogui.write("252")
         pyautogui.press("tab")
         pyautogui.write(valor)
-        
         pyautogui.press("enter")
         
-        pyautogui.click(40,156,duration=1)
-
-        pyautogui.click(508,335,duration=1)
+        #EFETUANDO 
+        pyautogui.click(508,335)
         
+        
+        #ACESSANDO CLASSIFICAÇÃO
+        pyautogui.click(40,156)
+        
+        #INCLUINDO NOVO REGISTRO
         pyautogui.hotkey('alt','i')
+        pyautogui.click(703,78)
 
-        sleep(2)
+        sleep(1)
+        #NOVO PROCESSO
+        
+pyautogui.alert("FIM DA OPERAÇÃO")
