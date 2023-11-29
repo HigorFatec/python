@@ -31,6 +31,8 @@ df_resultado['Série'] = df_resultado['Série'].astype(int)
 
 df_resultado['Valor Total'] = df_resultado['Valor Total'].astype(str)
 df_resultado['Valor Total'] = df_resultado['Valor Total'].str.replace('.', ',')
+
+#removendo os espaços em branco (' ')
 df_resultado = df_resultado.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
 
