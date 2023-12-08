@@ -19,6 +19,7 @@ Ele faz o lançamento de CTes para o contas a pagar
 
 1° Abre-se o arquivo 'planilha.py' para fazer a manipulação de dados.
     Utilizando biblioteca Pandas e a biblioteca OS para fazer a transformação no arquivo '.txt'
+
     
 2° Abre-se o arquivo 'automacao.py' que é aonde começa a 'mágica' 
     (envio automaticamente dos CTes para o contas a pagar) 
