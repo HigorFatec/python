@@ -28,5 +28,10 @@ Ele faz o lançamento de CTes para o contas a pagar
 # Directory 'manifesto - uberlandia'
 
 Olá, esse projeto é uma automatização na criação de manifestos em uberlândia
-
 É uma versão do diretório "robozinho" de ribeirão preto , porem adaptado para criação em UDI(Uberlândia)
+
+# Directory 'BoletosPDF'
+
+Olá , esse projeto é a criação dos boletos em PDF , com base no DDA (Boletos emitidos no CNPJ da empresa)
+Simplesmente basta colocar os arquivos (.ret) no diretorio './caminho', e executar o 'executar.py'
+E os boletos são gerados
