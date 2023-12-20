@@ -24,3 +24,9 @@ Ele faz o lançamento de CTes para o contas a pagar
 2° Abre-se o arquivo 'automacao.py' que é aonde começa a 'mágica' 
     (envio automaticamente dos CTes para o contas a pagar) 
     linha por linha da planilha (Controle GNRE Cargo Polo.xlsx)
+
+# Directory 'manifesto - uberlandia'
+
+Olá, esse projeto é uma automatização na criação de manifestos em uberlândia
+
+É uma versão do diretório "robozinho" de ribeirão preto , porem adaptado para criação em UDI(Uberlândia)
