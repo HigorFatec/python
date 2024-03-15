@@ -34,9 +34,15 @@ Olá, esse projeto é uma automatização na criação de manifestos em uberlân
 
 Olá , esse projeto é a criação dos boletos em PDF , com base no DDA (Boletos emitidos no CNPJ da empresa)
 Simplesmente basta colocar os arquivos (.ret) no diretorio './caminho', e executar o 'executar.py'
-E os boletos são gerados
 
 # Directory 'ipva'
 
 Olá, o projeto na pasta 'ipva' foi criado para automatização no envio de
 documentos para pagamento de IPVA no sistema RODOPAR
+
+# Directory 'Atualizar Escala'
+
+Esse projeto na pasta 'Atualizar Escala' foi criado em python para que os usuários possam atualizar a escala
+do aplicativo de conferência criado em flutter utilizando a linguagem de programação dart.
+Basta atualizar a planilha do excel (escala.xlsx) sem alterar as colunas apenas as informações das linhas
+e executar o script (AtualizarEscala.py)
