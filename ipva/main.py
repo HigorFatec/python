@@ -63,7 +63,7 @@ with open('saida.txt','r') as arquivo:
         pyautogui.press('tab')
         pyautogui.write(docto)
         pyautogui.click(306,512)
-        pyautogui.write('AUTOMAÇÃO NA ENTRADA DE CONTAS A PAGAR IPVA')
+        pyautogui.write('AUTOMACAO NA ENTRADA DE CONTAS A PAGAR IPVA')
         pyautogui.hotkey('alt','s')
         pyautogui.hotkey('alt','s')
 
@@ -155,7 +155,7 @@ with open('saida.txt','r') as arquivo:
 
 
         #CENTRO DE GASTO
-        pyautogui.press('f2')
+        pyautogui.press('f2')  
         pyautogui.write(gasto)
         pyautogui.press('f4')
         pyautogui.click(1119,360)
@@ -199,4 +199,4 @@ with open('saida.txt','r') as arquivo:
 
         contador += 1
 
-        print(f"Foram feitas {contador} linhas!")   
+        print(f"Foram feitas {contador} linhas! Placa {documento}")   

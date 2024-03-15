@@ -7,12 +7,26 @@ import os
 diretorio_atual = os.path.dirname(os.path.abspath(__file__))
 
 # Caminho relativo para o arquivo Excel
-caminho_excel = os.path.join(diretorio_atual, 'ipva.xlsx')
+caminho_excel = os.path.join(diretorio_atual, 'IPVA.xlsx')
 
 pyautogui.alert("Bem vindo, certifique-se de que foi atualizado o arquivo 'manifesto.xlsx' \n DT - linha - codigo\n Criado por: ☯☠ HigorMachado ☯☠")
 
 # Carregar o arquivo Excel
 excel_file = pd.read_excel(caminho_excel)
+
+
+excel_file['VENCIMENTO'] = pd.to_datetime(excel_file['VENCIMENTO'], format='%d/%m/%Y').dt.strftime('%d/%m/%Y')
+
+excel_file['VENCIMENTO.1'] = pd.to_datetime(excel_file['VENCIMENTO.1'], format='%d/%m/%Y').dt.strftime('%d/%m/%Y')
+
+excel_file['VENCIMENTO.2'] = pd.to_datetime(excel_file['VENCIMENTO.2'], format='%d/%m/%Y').dt.strftime('%d/%m/%Y')
+
+excel_file['VENCIMENTO.3'] = pd.to_datetime(excel_file['VENCIMENTO.3'], format='%d/%m/%Y').dt.strftime('%d/%m/%Y')
+
+excel_file['VENCIMENTO.4'] = pd.to_datetime(excel_file['VENCIMENTO.4'], format='%d/%m/%Y').dt.strftime('%d/%m/%Y')
+
+
+
 
 # Definir o nome do arquivo de saída
 output_txt = 'saida.txt'
