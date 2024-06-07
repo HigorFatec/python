@@ -51,3 +51,8 @@ e executar o script (AtualizarEscala.py)
 
 Esse projeto na pasta 'Exportar Dados Carretas', trás os dados que foram inseridos no aplicativo
 "Conferência Logístico" referente ao recebimento de carretas.
+
+# Directory 'Licenciamento'
+
+Olá, o projeto na pasta 'licenciamento' foi criado para automatização no envio de
+documentos para pagamento de licenciamento no sistema RODOPAR
