@@ -46,3 +46,8 @@ Esse projeto na pasta 'Atualizar Escala' foi criado em python para que os usuár
 do aplicativo de conferência criado em flutter utilizando a linguagem de programação dart.
 Basta atualizar a planilha do excel (escala.xlsx) sem alterar as colunas apenas as informações das linhas
 e executar o script (AtualizarEscala.py)
+
+# Directory 'Exportar Dados Carretas'
+
+Esse projeto na pasta 'Exportar Dados Carretas', trás os dados que foram inseridos no aplicativo
+"Conferência Logístico" referente ao recebimento de carretas.
