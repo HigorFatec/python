@@ -1,2 +1,3 @@
-cargopolo287 - Lençois CCO-2: fe81e789-c634-4bfe-bc1c-f9b08ba664b3
-cargopolo288 - Lençois CCO-3: 111f80a0-95bf-44c8-bac0-18751fd3787e
+cargopolo593 - Lençois CCO-2: 74dbeca9-e4b6-4add-ab7f-24a8ee442352
+
+cargopolo 594 - Lençois CCO-3: 77a43643-42d9-4df5-8e78-b5d080e57a25
