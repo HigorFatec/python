@@ -1,4 +1,7 @@
-Conforme solicitado, foi realizada a criação dos usuários abaixo:
+Olá Higor Machado, tudo bem? espero que sim
 
-cargopolo658: 5ba272d7-a525-4769-a91a-45bb5c909d6d
-cargopolo659: ce67f9fb-8d6f-46b0-9afa-cfabb39a61a0
+Conforme contato, segue as chaves solicitadas:
+
+PC Torre 10: dbb768eb-9e29-4022-bcd8-09901f55026b
+
+PC Torre 11:  fa75a5cf-b769-4d7d-8520-0de69c1010fb
