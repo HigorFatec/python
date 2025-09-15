@@ -1,1 +1,4 @@
-e190822d-906d-4a9c-871d-268fa0668896
+Conforme solicitado, foi realizada a criação dos usuários abaixo:
+
+cargopolo658: 5ba272d7-a525-4769-a91a-45bb5c909d6d
+cargopolo659: ce67f9fb-8d6f-46b0-9afa-cfabb39a61a0
