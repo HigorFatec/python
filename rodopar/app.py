@@ -131,6 +131,8 @@ if senha == senha_correta:
             cursor.execute("""  DELETE FROM RECDOC WHERE NUMDUP = ? """,(fatura))
         
             try:
+                # Commit para salvar as alterações
+                conn.commit()
                 cursor.close()
                 conn.close()
             except Exception as e:
@@ -210,11 +212,11 @@ if senha == senha_correta:
                         # Função para obter a data e hora atual
                         def obter_data_atual():
                             #return datetime.now().strftime("%Y-%m-%d %H:%M")
-                            return datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                            return datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
                         # Função para obter a data e hora atual
                         def obter_apenas_data_atual():
-                            return datetime.now().strftime("%d/%m/%Y")
+                            return datetime.now().strftime("%m/%d/%Y")
 
                         # função obter data e hora atual e milisegundos no formato SQL Server
                         def GETDATE():
@@ -323,141 +325,141 @@ if senha == senha_correta:
 
                                 #ATÉ AQUI TD BEM
 
-                                # Quarto INSERT
-                                # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
-                                if codfil == ultimo_codfil and codpag == ultimo_codpag:
-                                    # usa o mesmo proximo_id anterior
-                                    pass
-                                else:
-                                    try:
-                                        cursor.execute(""" INSERT INTO RECDOC (NUMDUP,CODFIL, CODPAD, CODCLIFOR, CODVEN, CODBCO, CODOPE, CODTAX, DATEMI, DATVEN, VALDUP, VLRCOM, SITUAC, JURDIA, DESCAN, VLRJUR, VLRCOR, VLRDES, VLRLIQ, VLRREC, REFERE, DATATU, USUATU, ORIGEM, DATINC,USUINC, DESCON, CODFPG, TAXCOB, VLRIND, DESCIN,DATREF) SELECT NUMDUP, CODFIL, CODPAD, CODCLIFOR, CODVEN, CODBCO, CODOPE, CODTAX, DATEMI,  DATVEN, VLRDUP, 0 AS VLRCOM,'I', 0 AS JURDIA, ISNULL(DESCAN, 0) DESCAN, 0 AS VLRJUR, VLRCOR, 0 AS VLRDES, VLRDUP, 0 AS VLRREC, LEFT(OBSERV,255) AS REFERE, GETDATE(), USUATU, 'F', GETDATE(),'HIGOR.MACHADO', ISNULL(DESCON,0) + ISNULL(DESICM, 0) AS DESCON,CODFPG, TAXCOB, VLRIND,DESCIN,DATEMI FROM RODDUP WHERE CODFIL = ? AND NUMDUP = ? """,(
-                                                codfil, proximo_id
+                                # # Quarto INSERT
+                                # # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
+                                # if codfil == ultimo_codfil and codpag == ultimo_codpag:
+                                #     # usa o mesmo proximo_id anterior
+                                #     pass
+                                # else:
+                                #     try:
+                                #         cursor.execute(""" INSERT INTO RECDOC (NUMDUP,CODFIL, CODPAD, CODCLIFOR, CODVEN, CODBCO, CODOPE, CODTAX, DATEMI, DATVEN, VALDUP, VLRCOM, SITUAC, JURDIA, DESCAN, VLRJUR, VLRCOR, VLRDES, VLRLIQ, VLRREC, REFERE, DATATU, USUATU, ORIGEM, DATINC,USUINC, DESCON, CODFPG, TAXCOB, VLRIND, DESCIN,DATREF) SELECT NUMDUP, CODFIL, CODPAD, CODCLIFOR, CODVEN, CODBCO, CODOPE, CODTAX, DATEMI,  DATVEN, VLRDUP, 0 AS VLRCOM,'I', 0 AS JURDIA, ISNULL(DESCAN, 0) DESCAN, 0 AS VLRJUR, VLRCOR, 0 AS VLRDES, VLRDUP, 0 AS VLRREC, LEFT(OBSERV,255) AS REFERE, GETDATE(), USUATU, 'F', GETDATE(),'HIGOR.MACHADO', ISNULL(DESCON,0) + ISNULL(DESICM, 0) AS DESCON,CODFPG, TAXCOB, VLRIND,DESCIN,DATEMI FROM RODDUP WHERE CODFIL = ? AND NUMDUP = ? """,(
+                                #                 codfil, proximo_id
 
-                                        ))
+                                #         ))
 
 
-                                    except Exception as e:
-                                        print(f'Erro Quarto Update {e}')
+                                #     except Exception as e:
+                                #         print(f'Erro Quarto Update {e}')
 
                             
-                                # Quinto INSERT
-                                # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
-                                if codfil == ultimo_codfil and codpag == ultimo_codpag:
-                                    # usa o mesmo proximo_id anterior
-                                    pass
-                                else:
-                                    try:
-                                        #PEGANDO ULTIMO ID
-                                        cursor.execute("select MAX(ID_RECDOCI) + 1 as MAX_RECDOCI FROM RECDOCI")
-                                        proximo_recdoci = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
+                                # # Quinto INSERT
+                                # # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
+                                # if codfil == ultimo_codfil and codpag == ultimo_codpag:
+                                #     # usa o mesmo proximo_id anterior
+                                #     pass
+                                # else:
+                                #     try:
+                                #         #PEGANDO ULTIMO ID
+                                #         cursor.execute("select MAX(ID_RECDOCI) + 1 as MAX_RECDOCI FROM RECDOCI")
+                                #         proximo_recdoci = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
 
 
-                                        cursor.execute("""  INSERT INTO RECDOCI (ID_RECDOCI, NUMDUP, CODFIL, NUMPAR, REFERE, DATVEN, DATREC, SITUAC, VLRPAR, VLRJUR, VLRCOR, VLRDES, VLRLIQ, VLRREC, VLRCOM, DATPRE, TAXCOB, DATATU, USUATU, DATINC, DESCON, VLRIND, DESCIN)  SELECT ? AS ID_RECDOCI,NUMDUP, CODFIL, 1 AS NUMPAR, NULL AS REFERE, ?, NULL AS DATREC, 'D' AS SITUAC, VLRDUP AS VLRPAR, 0 AS VLRJUR, VLRCOR, 0 AS VLRDES, VLRDUP, 0 AS VLRREC, 0 AS VLRCOM, ?  AS DATPRE, TAXCOB, DATATU, USUATU, DATINC, ISNULL(DESCON,0) + ISNULL(DESICM, 0) AS DESCON, VLRIND, ISNULL(DESCIN,0) AS DESCIN FROM RODDUP WHERE CODFIL = ? AND NUMDUP = ? """,(
-                                                proximo_recdoci, obter_apenas_data_atual(), obter_apenas_data_atual(), codfil, proximo_id
+                                #         cursor.execute("""  INSERT INTO RECDOCI (ID_RECDOCI, NUMDUP, CODFIL, NUMPAR, REFERE, DATVEN, DATREC, SITUAC, VLRPAR, VLRJUR, VLRCOR, VLRDES, VLRLIQ, VLRREC, VLRCOM, DATPRE, TAXCOB, DATATU, USUATU, DATINC, DESCON, VLRIND, DESCIN)  SELECT ? AS ID_RECDOCI,NUMDUP, CODFIL, 1 AS NUMPAR, NULL AS REFERE, ?, NULL AS DATREC, 'D' AS SITUAC, VLRDUP AS VLRPAR, 0 AS VLRJUR, VLRCOR, 0 AS VLRDES, VLRDUP, 0 AS VLRREC, 0 AS VLRCOM, ?  AS DATPRE, TAXCOB, DATATU, USUATU, DATINC, ISNULL(DESCON,0) + ISNULL(DESICM, 0) AS DESCON, VLRIND, ISNULL(DESCIN,0) AS DESCIN FROM RODDUP WHERE CODFIL = ? AND NUMDUP = ? """,(
+                                #                 proximo_recdoci, obter_apenas_data_atual(), obter_apenas_data_atual(), codfil, proximo_id
 
-                                        ))
+                                #         ))
 
-                                    except Exception as e:
-                                        print(f'Erro Quinto Update {e}')
+                                #     except Exception as e:
+                                #         print(f'Erro Quinto Update {e}')
 
-                                # Sexto Delete
-                                try:
+                                # # Sexto Delete
+                                # try:
 
-                                    cursor.execute(""" DELETE FROM RECRAT WHERE CODFIL = ? AND NUMDUP = ?
-                                    """,(codfil,proximo_id_string))
+                                #     cursor.execute(""" DELETE FROM RECRAT WHERE CODFIL = ? AND NUMDUP = ?
+                                #     """,(codfil,proximo_id_string))
 
-                                except Exception as e:
-                                    print(f'Erro Sexto Delete {e}')
+                                # except Exception as e:
+                                #     print(f'Erro Sexto Delete {e}')
 
 
-                                    #armazenar tarrat
-                                # Sétimo insert
-                                try:
-                                    #PEGANDO ULTIMO ID
-                                    cursor.execute("select MAX(ID_RECRAT) + 1 as MAX_RECRAT FROM recrat")
-                                    proximo_id_recrat = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
+                                #     #armazenar tarrat
+                                # # Sétimo insert
+                                # try:
+                                #     #PEGANDO ULTIMO ID
+                                #     cursor.execute("select MAX(ID_RECRAT) + 1 as MAX_RECRAT FROM recrat")
+                                #     proximo_id_recrat = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
 
-                                    cursor.execute("""SELECT TARRAT.CODUNN, TARRAT.CODCGA, TARRAT.CODCUS, TARRAT.SINTET, TARRAT.ANALIT FROM RODDUP,TARRAT WHERE RODDUP.CODTAR = TARRAT.CODTAR AND CODFIL = ? AND NUMDUP = ?""",(codfil,proximo_id))
-                                    resultado = cursor.fetchone()
+                                #     cursor.execute("""SELECT TARRAT.CODUNN, TARRAT.CODCGA, TARRAT.CODCUS, TARRAT.SINTET, TARRAT.ANALIT FROM RODDUP,TARRAT WHERE RODDUP.CODTAR = TARRAT.CODTAR AND CODFIL = ? AND NUMDUP = ?""",(codfil,proximo_id))
+                                #     resultado = cursor.fetchone()
 
-                                    # Verifica se a consulta retornou algum resultado
-                                    if resultado:
-                                        # Desempacota a tupla "resultado" nas cinco variáveis
-                                        cod_unn, cod_cga, cod_cus, sintet, analit = resultado
-                                        cod_cust = str(cod_cus)
-                                        cursor.execute("""    INSERT INTO RECRAT (ID_RECRAT,NUMDUP,CODFIL,CODUNN,CODCGA,CODCUS,SINTET,ANALIT,VALOR,DATATU,USUATU,DATINC,VLRIND) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) """,(
-                                                proximo_id_recrat, proximo_id, codfil, cod_unn, cod_cga, cod_cus,sintet,analit,total_soma,GETDATE(),'HIGOR.MACHADO',GETDATE(),total_soma
+                                #     # Verifica se a consulta retornou algum resultado
+                                #     if resultado:
+                                #         # Desempacota a tupla "resultado" nas cinco variáveis
+                                #         cod_unn, cod_cga, cod_cus, sintet, analit = resultado
+                                #         cod_cust = str(cod_cus)
+                                #         cursor.execute("""    INSERT INTO RECRAT (ID_RECRAT,NUMDUP,CODFIL,CODUNN,CODCGA,CODCUS,SINTET,ANALIT,VALOR,DATATU,USUATU,DATINC,VLRIND) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) """,(
+                                #                 proximo_id_recrat, proximo_id, codfil, cod_unn, cod_cga, cod_cus,sintet,analit,total_soma,GETDATE(),'HIGOR.MACHADO',GETDATE(),total_soma
 
-                                    ))
-                                except Exception as e:
-                                    print(f'Erro Sétimo Update {e}')
+                                #     ))
+                                # except Exception as e:
+                                #     print(f'Erro Sétimo Update {e}')
 
-                                # Oitavo INSERT
-                                try:
-                                    cursor.execute("""    UPDATE RECDOCI SET DATREC =   CASE M.SITUAC       WHEN 'L'   THEN M.DATLAN       ELSE NULL  END  FROM RECDOCI I,RECMEN M  WHERE M.NUMDUP = I.NUMDUP  AND M.CODFIL = I.CODFIL  AND M.NUMPAR = I.NUMPAR  AND  I.CODFIL = ? AND I.NUMDUP = ? AND I.NUMPAR = 1 AND M.NUMLAN = 0 """,(
-                                            codfil, proximo_id_string
-                                    ))
+                                # # Oitavo INSERT
+                                # try:
+                                #     cursor.execute("""    UPDATE RECDOCI SET DATREC =   CASE M.SITUAC       WHEN 'L'   THEN M.DATLAN       ELSE NULL  END  FROM RECDOCI I,RECMEN M  WHERE M.NUMDUP = I.NUMDUP  AND M.CODFIL = I.CODFIL  AND M.NUMPAR = I.NUMPAR  AND  I.CODFIL = ? AND I.NUMDUP = ? AND I.NUMPAR = 1 AND M.NUMLAN = 0 """,(
+                                #             codfil, proximo_id_string
+                                #     ))
 
-                                except Exception as e:
-                                    print(f'Erro Oitavo Update {e}')
+                                # except Exception as e:
+                                #     print(f'Erro Oitavo Update {e}')
 
-                                try:
-                                    cursor.execute("""      UPDATE RECDOCI  SET SITUAC = 'D',   VLRREC= 0 ,VLRJUR= 0 ,VLRDES= 0 ,VLRCOR= 0 ,TAXCOB= 0 ,DESADT= 0 WHERE  CODFIL = ? AND NUMDUP = ? AND NUMPAR = 1 """,(
-                                            codfil, proximo_id_string
-                                    ))
+                                # try:
+                                #     cursor.execute("""      UPDATE RECDOCI  SET SITUAC = 'D',   VLRREC= 0 ,VLRJUR= 0 ,VLRDES= 0 ,VLRCOR= 0 ,TAXCOB= 0 ,DESADT= 0 WHERE  CODFIL = ? AND NUMDUP = ? AND NUMPAR = 1 """,(
+                                #             codfil, proximo_id_string
+                                #     ))
 
-                                except Exception as e:
-                                    print(f'Erro Nono Update {e}')
+                                # except Exception as e:
+                                #     print(f'Erro Nono Update {e}')
 
-                                try:
-                                    cursor.execute("""   UPDATE RECDOCI SET VLRLIQ = (VLRPAR + VLRJUR + VLRCOR - VLRDES + TAXCOB)   WHERE  CODFIL = ? AND NUMDUP = ? AND NUMPAR = 1""",(
-                                            codfil, proximo_id_string
-                                    ))
-                                except Exception as e:
-                                    print(f'Erro Décimo Update {e}')
+                                # try:
+                                #     cursor.execute("""   UPDATE RECDOCI SET VLRLIQ = (VLRPAR + VLRJUR + VLRCOR - VLRDES + TAXCOB)   WHERE  CODFIL = ? AND NUMDUP = ? AND NUMPAR = 1""",(
+                                #             codfil, proximo_id_string
+                                #     ))
+                                # except Exception as e:
+                                #     print(f'Erro Décimo Update {e}')
 
                                 
-                                # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
-                                if codfil == ultimo_codfil and codpag == ultimo_codpag:
-                                    # usa o mesmo proximo_id anterior
-                                    pass
-                                else:
-                                # Décimo Primeiro insert
-                                    try:
-                                        #PEGANDO ULTIMO ID
-                                        cursor.execute("select MAX(NUMLAN) + 1 as MAX_RECMEN FROM RECMEN")
-                                        proximo_id_recmen = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
+                                # # Se for o mesmo codfil e codpag da linha anterior, reutiliza o mesmo proximo_id
+                                # if codfil == ultimo_codfil and codpag == ultimo_codpag:
+                                #     # usa o mesmo proximo_id anterior
+                                #     pass
+                                # else:
+                                # # Décimo Primeiro insert
+                                #     try:
+                                #         #PEGANDO ULTIMO ID
+                                #         cursor.execute("select MAX(NUMLAN) + 1 as MAX_RECMEN FROM RECMEN")
+                                #         proximo_id_recmen = cursor.fetchone()[0] or 1  # Se não houver registros, use 1 como valor inicial
 
 
-                                        cursor.execute("""  INSERT INTO RECMEN SELECT ? AS NUMLAN, D.NUMDUP,D.CODFIL, null as NUMPAR, D.CODCLIFOR,  CODTAX AS CODTAX, (SELECT TOP 1 TIPDOC FROM BANTPD ) as TIPDOC, 1 as CODHISRC,null as NUMAVI, null as CODCTA, CODBCO as BANREC, D.CODVEN, 'D' as DebCre, D.VALDUP AS VLRLAN, NULL as DATVEN, DATEMI as DATLAN, 0 AS VLRJUR,0 AS VLRDES, 0 AS VLRCOR, VLRLIQ, 0 AS VLRCOM,D.TAXCOB as TAXCOB,'D' AS SITUAC, left(REFERE,200) as REFERE, ? as DATATU,? AS USUATU,NULL AS ORIGEM,NULL AS DUPDES, NULL AS FILDES, NULL AS DESADT, NULL AS VLRTAX, D.VLRIND AS VLRIND, D.DESCIN AS DESCIN From RECDOC D where CODFIL = ? AND NUMDUP = ? """,(
-                                                proximo_id_recmen, GETDATE(),'HIGOR.MACHADO', codfil, proximo_id_string
-                                        ))
+                                #         cursor.execute("""  INSERT INTO RECMEN SELECT ? AS NUMLAN, D.NUMDUP,D.CODFIL, null as NUMPAR, D.CODCLIFOR,  CODTAX AS CODTAX, (SELECT TOP 1 TIPDOC FROM BANTPD ) as TIPDOC, 1 as CODHISRC,null as NUMAVI, null as CODCTA, CODBCO as BANREC, D.CODVEN, 'D' as DebCre, D.VALDUP AS VLRLAN, NULL as DATVEN, DATEMI as DATLAN, 0 AS VLRJUR,0 AS VLRDES, 0 AS VLRCOR, VLRLIQ, 0 AS VLRCOM,D.TAXCOB as TAXCOB,'D' AS SITUAC, left(REFERE,200) as REFERE, ? as DATATU,? AS USUATU,NULL AS ORIGEM,NULL AS DUPDES, NULL AS FILDES, NULL AS DESADT, NULL AS VLRTAX, D.VLRIND AS VLRIND, D.DESCIN AS DESCIN From RECDOC D where CODFIL = ? AND NUMDUP = ? """,(
+                                #                 proximo_id_recmen, GETDATE(),'HIGOR.MACHADO', codfil, proximo_id_string
+                                #         ))
 
-                                    except Exception as e:
-                                        print(f'Erro Décimo Primeiro Select {e}')
+                                #     except Exception as e:
+                                #         print(f'Erro Décimo Primeiro Select {e}')
 
-                                try:
+                                # try:
 
-                                    cursor.execute("""  UPDATE RECDOC SET SITUAC = 'D',   VLRREC= 0 ,VLRJUR= 0 ,VLRDES= 0 ,VLRCOR= 0 ,DESADT= 0 WHERE CODFIL = ? AND NUMDUP = ?""",(
-                                        codfil, proximo_id_string
-                                    ))
+                                #     cursor.execute("""  UPDATE RECDOC SET SITUAC = 'D',   VLRREC= 0 ,VLRJUR= 0 ,VLRDES= 0 ,VLRCOR= 0 ,DESADT= 0 WHERE CODFIL = ? AND NUMDUP = ?""",(
+                                #         codfil, proximo_id_string
+                                #     ))
 
-                                    cursor.execute("""    UPDATE RECDOC SET  VLRLIQ = ISNULL(VALDUP,0) + ISNULL(VLRJUR,0) + ISNULL(VLRCOR,0) - ISNULL(VLRDES,0)  + ISNULL(TAXCOB,0) WHERE CODFIL = ? AND NUMDUP = ?""",(
-                                        codfil, proximo_id_string
-                                    ))
+                                #     cursor.execute("""    UPDATE RECDOC SET  VLRLIQ = ISNULL(VALDUP,0) + ISNULL(VLRJUR,0) + ISNULL(VLRCOR,0) - ISNULL(VLRDES,0)  + ISNULL(TAXCOB,0) WHERE CODFIL = ? AND NUMDUP = ?""",(
+                                #         codfil, proximo_id_string
+                                #     ))
 
-                                    cursor.execute("""    UPDATE RODIDU SET SITDUP = 'N' WHERE CODFIL = ? AND NUMDUP = ?""",(
-                                        codfil, proximo_id
-                                    ))
+                                #     cursor.execute("""    UPDATE RODIDU SET SITDUP = 'N' WHERE CODFIL = ? AND NUMDUP = ?""",(
+                                #         codfil, proximo_id
+                                #     ))
 
                                     
-                                    cursor.execute("""  UPDATE RODDUP SET SITUAC = 'N' WHERE CODFIL = ? AND NUMDUP = ?""",(
-                                        codfil, proximo_id
-                                    ))
+                                #     cursor.execute("""  UPDATE RODDUP SET SITUAC = 'N' WHERE CODFIL = ? AND NUMDUP = ?""",(
+                                #         codfil, proximo_id
+                                #     ))
 
 
-                                except Exception as e:
-                                    print(f'Erro Décimo Segundo Update {e}')
+                                # except Exception as e:
+                                #     print(f'Erro Décimo Segundo Update {e}')
 
                                                                 
 
