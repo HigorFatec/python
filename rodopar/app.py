@@ -461,17 +461,21 @@ if senha == senha_correta:
                                 # except Exception as e:
                                 #     print(f'Erro Décimo Segundo Update {e}')
 
-                                                                
-
-                                # Atualiza os últimos códigos
-                                ultimo_codfil = codfil
-                                ultimo_codpag = codpag
-
                                 # Commit para salvar as alterações
                                 conn.commit()
 
-                                st.markdown(f"<h4 class='titulo-customizado'>Duplicata: {proximo_id} Dados do Pagador {codpag} inseridos com sucesso! {total} adicionados!</h4>",unsafe_allow_html = True)
-                                print(f"Duplicata: {proximo_id} Dados do Pagador {codpag} inseridos com sucesso! {total} adicionados!")
+                                ultimo_codfil = codfil
+                                ultimo_codpag = codpag
+
+                                if codfil == ultimo_codfil and codpag == ultimo_codpag:
+                                    # usa o mesmo proximo_id anterior
+                                    pass
+                                else:
+                                    st.markdown(f"<h4 class='titulo-customizado'>Duplicata: {proximo_id} Dados do Pagador {codpag} inseridos com sucesso! {total} adicionados!</h4>",unsafe_allow_html = True)
+                                    print(f"Duplicata: {proximo_id} Dados do Pagador {codpag} inseridos com sucesso! {total} adicionados!")
+
+                                # Atualiza os últimos códigos
+
 
                         #FECHAR CONEXÃO APOS TODOS OS INSERTS
                         cursor.close()
