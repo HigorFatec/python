@@ -1,19 +1,16 @@
 from selenium import webdriver
-from time import sleep
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from selenium.common.exceptions import TimeoutException
-
+from selenium.webdriver.common.action_chains import ActionChains
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium_stealth import stealth
+from time import sleep
 import mysql.connector
 from datetime import datetime
 import traceback
-
-
-from selenium.webdriver.common.action_chains import ActionChains
-
-
 
 while True:
     driver = None
@@ -21,119 +18,81 @@ while True:
     cursor = None
 
     try:
-        driver = webdriver.Chrome()
+        # Configurações para o servidor não ser detectado
+        chrome_options = Options()
+        chrome_options.add_argument("--start-maximized")
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+
+        # Inicializa o Driver padrão (resolve o erro de Binary Location)
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        # Aplica o Stealth (Disfarce de Humano)
+        stealth(driver,
+                languages=["pt-BR", "pt"],
+                vendor="Google Inc.",
+                platform="Win32",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True)
+
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
+        wait = WebDriverWait(driver, 30) # Tempo maior para o servidor
 
-        # Aqui você cria o WebDriverWait para este driver:
-        wait = WebDriverWait(driver, 20)
-
-        driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select').click()
-
+        # --- Início da sua lógica original ---
+        # Seleção da opção no dropdown
+        wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select'))).click()
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select/option[6]').click()
 
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
+        # Login
+        wait.until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
         driver.find_element(By.NAME, 'formLogin:j_id15').send_keys('higor.cargopolo')
-        driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('Car123$$')
-
-        # Submeter o formulário
+        driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
-
-        sleep(10)  # Espera a página carregar
-        
-        actions = ActionChains(driver)
-
-        try:
-
-            wait = WebDriverWait(driver, 10)
-
-            # 1️⃣ Espera o menu principal "Alteração" aparecer
-            menu_alteracao = wait.until(
-                EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89"))
-            )
-
-            # 2️⃣ Usa ActionChains para passar o mouse sobre o menu (abrir o dropdown)
-            actions = ActionChains(driver)
-            actions.move_to_element(menu_alteracao).perform()
-
-            # 3️⃣ Espera o submenu aparecer (por exemplo, "Cancelamento de Cartão")
-            submenu = wait.until(
-                EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']"))
-            )
-
-            #4️⃣ Clica na opção desejada
-            submenu.click()
-            sleep(5)  # Espera a página carregar
-
-            # Localiza o valor após o texto "Saldo Disponível"
-            saldo_disponivel = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
-                )
-            )
-
-            print("Saldo Disponível:", saldo_disponivel.text)
-
-
-            #sleep(1000)
-
-            print("✅ Clique realizado com sucesso no menu Distribuição de Saldo de Filial!")
-        except Exception as e:
-            print("❌ Erro ao clicar no menu:", e)
-            traceback.print_exc()
-
-
 
         sleep(10)
 
-        try:
-            # Conectar ao MySQL
-            conn = mysql.connector.connect(
+        # Navegação nos Menus
+        menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
+        actions = ActionChains(driver)
+        actions.move_to_element(menu_alteracao).perform()
+
+        submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
+        submenu.click()
+        
+        # Captura do Saldo
+        saldo_element = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
+        ))
+        valor_saldo = saldo_element.text
+        print(f"Saldo Disponível: {valor_saldo}")
+
+        # Banco de Dados
+        conn = mysql.connector.connect(
             host="177.47.11.35",
             port=14804,
             user="cargopolo",
             password="9pN2ayXE3HaUAt",
             database="formulario"
-            )
-            
-            cursor = conn.cursor()
+        )
+        cursor = conn.cursor()
+        query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
+        cursor.execute(query, (valor_saldo, datetime.now()))
+        conn.commit()
+        print("✅ Dados salvos com sucesso!")
 
-            query = """INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"""
-
-            params = (saldo_disponivel.text, datetime.now())
-            cursor.execute(query, params)
-
-            conn.commit()
-
-            print("Saldo inserido com sucesso no banco de dados! Valor:", saldo_disponivel.text)
-            print(datetime.now())
-        except Exception as e:
-            print("Ocorreu um erro ao inserir no banco de dados:", e)
-            traceback.print_exc()
-
-
-        
     except Exception as e:
-        print("Ocorreu um erro:", e)
+        print(f"❌ Ocorreu um erro: {e}")
         traceback.print_exc()
 
     finally:
-        # Fechar conexões e driver, se existirem
-        try:
-            if cursor:
-                cursor.close()
-        except Exception as e:
-            print("Erro ao fechar cursor:", e)
-        try:
-            if conn:
-                conn.close()
-        except Exception as e:
-            print("Erro ao fechar conexão:", e)
-        try:
-            if driver:
-                driver.quit()
-        except Exception as e:
-            print("Erro ao fechar driver:", e)
+        if cursor: cursor.close()
+        if conn: conn.close()
+        if driver: driver.quit()
 
-    # Espera 5 minutos antes da próxima execução
     print("Esperando 5 minutos para próxima execução...\n")
     sleep(300)
