@@ -16,43 +16,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium_stealth import stealth
 
-def get_chrome_options():
-    options = Options()
-    
-    # --- PASSO CRUCIAL: COLE O CAMINHO QUE VOCÊ ACHOU NO PASSO 1 ABAIXO ---
-    # Exemplo: r"C:\Users\Administrador\AppData\Local\Google\Chrome\Application\chrome.exe"
-    caminho_manual = r"COLE_AQUI_O_CAMINHO_DO_DESTINO" 
-
-    # Lista de tentativas (incluindo o manual e caminhos padrão)
-    tentativas = [
-        caminho_manual,
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        os.path.join(os.environ.get('LOCALAPPDATA', ''), r"Google\Chrome\Application\chrome.exe")
-    ]
-    
-    chrome_encontrado = False
-    for caminho in tentativas:
-        if caminho and os.path.exists(caminho):
-            print(f"✅ Chrome encontrado em: {caminho}")
-            options.binary_location = caminho
-            chrome_encontrado = True
-            break
-        else:
-            print(f"❌ Não encontrado em: {caminho}")
-
-    if not chrome_encontrado:
-        print("⚠️ ALERTA: O Chrome não foi encontrado em nenhum local padrão!")
-
-    # Configurações de Servidor
-    options.add_argument("--start-maximized")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
-    
-    return options
-    
 while True:
     driver = None
     conn = None
@@ -61,11 +24,24 @@ while True:
     try:
         print(f"--- Iniciando ciclo: {datetime.now()} ---")
         
-        # Inicializa o Driver com Service (evita erros de binário no Python 3.13)
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=get_chrome_options())
+        options = Options()
+        
+        # 1. DEFININDO O CAMINHO QUE VOCÊ ENCONTROU
+        # O 'r' antes das aspas é vital para o Python entender as barras invertidas
+        options.binary_location = r"U:\Users\higor.machado\.cache\selenium\chrome\win64\147.0.7727.117\chrome.exe"
+        
+        # 2. Configurações essenciais para o Windows Server
+        options.add_argument("--start-maximized")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
 
-        # Aplica o "Stealth" para burlar o Cloudflare
+        # 3. Inicializa o Driver (Usando Service para evitar erros no Python 3.13)
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+
+        # 4. Aplica o disfarce contra o Cloudflare
         stealth(driver,
                 languages=["pt-BR", "pt"],
                 vendor="Google Inc.",
@@ -74,7 +50,7 @@ while True:
                 renderer="Intel Iris OpenGL Engine",
                 fix_hairline=True)
 
-        # Acessa o site
+        # --- A partir daqui, segue sua lógica original[cite: 3] ---
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
         wait = WebDriverWait(driver, 30)
 
@@ -82,59 +58,50 @@ while True:
         wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select'))).click()
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select/option[6]').click()
 
-        # Login
+        # Login[cite: 3]
         wait.until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
         driver.find_element(By.NAME, 'formLogin:j_id15').send_keys('higor.cargopolo')
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
 
-        sleep(10) # Aguarda carregamento pós-login
+        sleep(10)
 
-        # Navegação no Menu
-        try:
-            menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
-            actions = ActionChains(driver)
-            actions.move_to_element(menu_alteracao).perform()
+        # Extração e Banco de Dados[cite: 3]
+        menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
+        actions = ActionChains(driver)
+        actions.move_to_element(menu_alteracao).perform()
 
-            submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
-            submenu.click()
-            
-            sleep(5)
+        submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
+        submenu.click()
+        
+        saldo_element = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
+        ))
+        valor_capturado = saldo_element.text
+        print(f"✅ Saldo Capturado: {valor_capturado}")
 
-            # Captura do Saldo
-            saldo_element = wait.until(EC.presence_of_element_located(
-                (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
-            ))
-            valor_texto = saldo_element.text
-            print(f"Saldo localizado: {valor_texto}")
-
-            # Inserção no Banco de Dados
-            conn = mysql.connector.connect(
-                host="177.47.11.35",
-                port=14804,
-                user="cargopolo",
-                password="9pN2ayXE3HaUAt",
-                database="formulario"
-            )
-            cursor = conn.cursor()
-            query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
-            cursor.execute(query, (valor_texto, datetime.now()))
-            conn.commit()
-            print("✅ Sucesso: Saldo salvo no MySQL.")
-
-        except Exception as e_intern:
-            print(f"❌ Erro na extração/banco: {e_intern}")
-            traceback.print_exc()
+        # Conectar ao MySQL[cite: 3]
+        conn = mysql.connector.connect(
+            host="177.47.11.35",
+            port=14804,
+            user="cargopolo",
+            password="9pN2ayXE3HaUAt",
+            database="formulario"
+        )
+        cursor = conn.cursor()
+        query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
+        cursor.execute(query, (valor_capturado, datetime.now()))
+        conn.commit()
+        print("✅ Dados salvos com sucesso!")
 
     except Exception as e:
-        print(f"❌ Erro crítico no ciclo: {e}")
+        print(f"❌ Ocorreu um erro: {e}")
         traceback.print_exc()
 
     finally:
-        # Encerramento limpo de todas as conexões
         if cursor: cursor.close()
         if conn: conn.close()
         if driver: driver.quit()
 
-    print("Aguardando 5 minutos para a próxima execução...\n")
+    print("Esperando 5 minutos para próxima execução...\n")
     sleep(300)
