@@ -19,29 +19,40 @@ from selenium_stealth import stealth
 def get_chrome_options():
     options = Options()
     
-    # 1. Resolve o erro de "Cannot find Chrome binary" procurando caminhos comuns
-    caminhos_chrome = [
+    # --- PASSO CRUCIAL: COLE O CAMINHO QUE VOCÊ ACHOU NO PASSO 1 ABAIXO ---
+    # Exemplo: r"C:\Users\Administrador\AppData\Local\Google\Chrome\Application\chrome.exe"
+    caminho_manual = r"COLE_AQUI_O_CAMINHO_DO_DESTINO" 
+
+    # Lista de tentativas (incluindo o manual e caminhos padrão)
+    tentativas = [
+        caminho_manual,
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe")
+        os.path.join(os.environ.get('LOCALAPPDATA', ''), r"Google\Chrome\Application\chrome.exe")
     ]
-    for caminho in caminhos_chrome:
-        if os.path.exists(caminho):
+    
+    chrome_encontrado = False
+    for caminho in tentativas:
+        if caminho and os.path.exists(caminho):
+            print(f"✅ Chrome encontrado em: {caminho}")
             options.binary_location = caminho
+            chrome_encontrado = True
             break
+        else:
+            print(f"❌ Não encontrado em: {caminho}")
 
-    # 2. Configurações para ambiente de servidor
+    if not chrome_encontrado:
+        print("⚠️ ALERTA: O Chrome não foi encontrado em nenhum local padrão!")
+
+    # Configurações de Servidor
     options.add_argument("--start-maximized")
-    options.add_argument("--window-size=1920,1080")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    
-    # Remove rastros de automação
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     
     return options
-
+    
 while True:
     driver = None
     conn = None
