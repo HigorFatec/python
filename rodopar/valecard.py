@@ -26,22 +26,23 @@ while True:
         
         options = Options()
         
-        # 1. DEFININDO O CAMINHO QUE VOCÊ ENCONTROU
-        # O 'r' antes das aspas é vital para o Python entender as barras invertidas
+        # 1. APONTANDO PARA O BINÁRIO QUE VOCÊ ENCONTROU
         options.binary_location = r"U:\Users\higor.machado\.cache\selenium\chrome\win64\147.0.7727.117\chrome.exe"
         
-        # 2. Configurações essenciais para o Windows Server
+        # Configurações de estabilidade para o servidor
         options.add_argument("--start-maximized")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu") # Ajuda em erros de 'GpuControl' que apareceram no seu log
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
 
-        # 3. Inicializa o Driver (Usando Service para evitar erros no Python 3.13)
+        # 2. FORÇANDO O DRIVER CORRETO (Versão 147)
+        # O ChromeDriverManager vai tentar baixar o driver que combina com seu Chrome
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
-        # 4. Aplica o disfarce contra o Cloudflare
+        # 3. Disfarce contra bloqueios
         stealth(driver,
                 languages=["pt-BR", "pt"],
                 vendor="Google Inc.",
@@ -50,7 +51,7 @@ while True:
                 renderer="Intel Iris OpenGL Engine",
                 fix_hairline=True)
 
-        # --- A partir daqui, segue sua lógica original[cite: 3] ---
+        # --- Sua lógica de navegação ---
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
         wait = WebDriverWait(driver, 30)
 
@@ -58,7 +59,7 @@ while True:
         wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select'))).click()
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select/option[6]').click()
 
-        # Login[cite: 3]
+        # Login
         wait.until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
         driver.find_element(By.NAME, 'formLogin:j_id15').send_keys('higor.cargopolo')
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
@@ -66,7 +67,7 @@ while True:
 
         sleep(10)
 
-        # Extração e Banco de Dados[cite: 3]
+        # Extração do Saldo
         menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
         actions = ActionChains(driver)
         actions.move_to_element(menu_alteracao).perform()
@@ -80,13 +81,10 @@ while True:
         valor_capturado = saldo_element.text
         print(f"✅ Saldo Capturado: {valor_capturado}")
 
-        # Conectar ao MySQL[cite: 3]
+        # Salvar no MySQL
         conn = mysql.connector.connect(
-            host="177.47.11.35",
-            port=14804,
-            user="cargopolo",
-            password="9pN2ayXE3HaUAt",
-            database="formulario"
+            host="177.47.11.35", port=14804, user="cargopolo",
+            password="9pN2ayXE3HaUAt", database="formulario"
         )
         cursor = conn.cursor()
         query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
@@ -95,7 +93,7 @@ while True:
         print("✅ Dados salvos com sucesso!")
 
     except Exception as e:
-        print(f"❌ Ocorreu um erro: {e}")
+        print(f"❌ Erro detectado: {e}")
         traceback.print_exc()
 
     finally:
@@ -103,5 +101,5 @@ while True:
         if conn: conn.close()
         if driver: driver.quit()
 
-    print("Esperando 5 minutos para próxima execução...\n")
+    print("Dormindo por 5 minutos...\n")
     sleep(300)
