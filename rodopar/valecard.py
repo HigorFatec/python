@@ -1,24 +1,46 @@
+import os
+import traceback
+import mysql.connector
+from datetime import datetime
+from time import sleep
+
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.firefox import GeckoDriverManager
-from time import sleep
-import mysql.connector
-from datetime import datetime
-import traceback
 
-# Configurações do Banco de Dados
-DB_CONFIG = {
-    "host": "177.47.11.35",
-    "port": 14804,
-    "user": "cargopolo",
-    "password": "9pN2ayXE3HaUAt",
-    "database": "formulario"
-}
+# Gerenciadores de driver e disfarce
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium_stealth import stealth
+
+def get_chrome_options():
+    options = Options()
+    
+    # 1. Resolve o erro de "Cannot find Chrome binary" procurando caminhos comuns
+    caminhos_chrome = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe")
+    ]
+    for caminho in caminhos_chrome:
+        if os.path.exists(caminho):
+            options.binary_location = caminho
+            break
+
+    # 2. Configurações para ambiente de servidor
+    options.add_argument("--start-maximized")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    
+    # Remove rastros de automação
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    
+    return options
 
 while True:
     driver = None
@@ -26,26 +48,22 @@ while True:
     cursor = None
 
     try:
-        print(f"Iniciando execução em: {datetime.now()}")
+        print(f"--- Iniciando ciclo: {datetime.now()} ---")
         
-        # 1. Configurações do Firefox para o Servidor
-        firefox_options = Options()
-        # Caminho informado por você
-        firefox_options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
-        
-        # Disfarces para evitar detecção de bot no Firefox
-        firefox_options.set_preference("dom.webdriver.enabled", False)
-        firefox_options.set_preference('useAutomationExtension', False)
-        
-        # Define uma resolução fixa para evitar bloqueios do Cloudflare
-        firefox_options.add_argument("--width=1920")
-        firefox_options.add_argument("--height=1080")
+        # Inicializa o Driver com Service (evita erros de binário no Python 3.13)
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=get_chrome_options())
 
-        # 2. Inicializa o Driver
-        service = Service(GeckoDriverManager().install())
-        driver = webdriver.Firefox(service=service, options=firefox_options)
+        # Aplica o "Stealth" para burlar o Cloudflare
+        stealth(driver,
+                languages=["pt-BR", "pt"],
+                vendor="Google Inc.",
+                platform="Win32",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True)
 
-        # 3. Navegação Inicial
+        # Acessa o site
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
         wait = WebDriverWait(driver, 30)
 
@@ -59,16 +77,14 @@ while True:
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
 
-        sleep(10) # Aguarda o dashboard carregar
+        sleep(10) # Aguarda carregamento pós-login
 
-        # 4. Navegação nos Menus (Simulando Mouse)
+        # Navegação no Menu
         try:
-            # Menu "Alteração"
             menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
             actions = ActionChains(driver)
             actions.move_to_element(menu_alteracao).perform()
 
-            # Submenu
             submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
             submenu.click()
             
@@ -78,34 +94,36 @@ while True:
             saldo_element = wait.until(EC.presence_of_element_located(
                 (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
             ))
-            valor_saldo = saldo_element.text
-            print(f"Saldo Capturado: {valor_saldo}")
+            valor_texto = saldo_element.text
+            print(f"Saldo localizado: {valor_texto}")
 
-            # 5. Inserção no Banco de Dados
-            try:
-                conn = mysql.connector.connect(**DB_CONFIG)
-                cursor = conn.cursor()
-                query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
-                cursor.execute(query, (valor_saldo, datetime.now()))
-                conn.commit()
-                print("✅ Saldo inserido no banco com sucesso!")
-            except Exception as db_e:
-                print(f"❌ Erro no Banco de Dados: {db_e}")
-                traceback.print_exc()
+            # Inserção no Banco de Dados
+            conn = mysql.connector.connect(
+                host="177.47.11.35",
+                port=14804,
+                user="cargopolo",
+                password="9pN2ayXE3HaUAt",
+                database="formulario"
+            )
+            cursor = conn.cursor()
+            query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
+            cursor.execute(query, (valor_texto, datetime.now()))
+            conn.commit()
+            print("✅ Sucesso: Saldo salvo no MySQL.")
 
-        except Exception as menu_e:
-            print(f"❌ Erro na navegação interna: {menu_e}")
+        except Exception as e_intern:
+            print(f"❌ Erro na extração/banco: {e_intern}")
             traceback.print_exc()
 
     except Exception as e:
-        print(f"❌ Erro Geral: {e}")
+        print(f"❌ Erro crítico no ciclo: {e}")
         traceback.print_exc()
 
     finally:
-        # Encerramento Seguro
+        # Encerramento limpo de todas as conexões
         if cursor: cursor.close()
         if conn: conn.close()
         if driver: driver.quit()
 
-    print("Esperando 5 minutos para a próxima execução...\n")
+    print("Aguardando 5 minutos para a próxima execução...\n")
     sleep(300)
