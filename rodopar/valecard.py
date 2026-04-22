@@ -10,20 +10,17 @@ from time import sleep
 
 while True:
     driver = None
-    conn = None
-    cursor = None
-
     try:
-        print(f"--- Iniciando Ciclo Anti-Bloqueio: {datetime.now()} ---")
+        print(f"--- Iniciando Ciclo: {datetime.now()} ---")
         
         options = uc.ChromeOptions()
-        # Removido o binary_location pois agora está no padrão do C:\
-        # Se quiser rodar sem janela no futuro: options.add_argument('--headless')
+        # Força o navegador a abrir maximizado para evitar o erro de 'Out of Bounds'
+        options.add_argument('--start-maximized')
+        options.add_argument('--window-size=1920,1080')
         
-        # O UC vai encontrar o Chrome no C:\ sozinho agora
         driver = uc.Chrome(options=options)
         
-        # 1. Acesso ao SIAG Valecard
+        # 1. Acesso ao SIAG
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
         wait = WebDriverWait(driver, 30)
 
@@ -36,44 +33,60 @@ while True:
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
 
-        # ESPERA ESTRATÉGICA: Dá tempo para o Cloudflare validar o "humano"
+        # Espera o Cloudflare e o carregamento do dashboard
         sleep(15) 
 
-        # 4. Navegação nos Menus
-        menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
-        ActionChains(driver).move_to_element(menu_alteracao).perform()
+        # 4. Navegação nos Menus (Substituímos o move_to_element por um clique direto via JS para evitar erros de limite)
+        try:
+            menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
+            
+            # Rola até o elemento antes de interagir
+            driver.execute_script("arguments[0].scrollIntoView();", menu_alteracao)
+            sleep(2)
+            
+            # Tenta o hover, se falhar, clica direto via JavaScript
+            try:
+                ActionChains(driver).move_to_element(menu_alteracao).perform()
+            except:
+                driver.execute_script("arguments[0].click();", menu_alteracao)
 
-        submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
-        submenu.click()
-        
-        sleep(5)
+            submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
+            submenu.click()
+            
+            sleep(5)
 
-        # 5. Captura do Saldo
-        saldo_elemento = wait.until(EC.presence_of_element_located(
-            (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
-        ))
-        valor_capturado = saldo_elemento.text
-        print(f"✅ Saldo Capturado: {valor_capturado}")
+            # 5. Captura do Saldo
+            saldo_elemento = wait.until(EC.presence_of_element_located(
+                (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
+            ))
+            valor_capturado = saldo_elemento.text
+            print(f"✅ Saldo: {valor_capturado}")
 
-        # 6. Gravação no MySQL
-        conn = mysql.connector.connect(
-            host="177.47.11.35", port=14804, user="cargopolo",
-            password="9pN2ayXE3HaUAt", database="formulario"
-        )
-        cursor = conn.cursor()
-        query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
-        cursor.execute(query, (valor_capturado, datetime.now()))
-        conn.commit()
-        print("✅ Dados gravados com sucesso!")
+            # 6. Banco de Dados
+            conn = mysql.connector.connect(
+                host="177.47.11.35", port=14804, user="cargopolo",
+                password="9pN2ayXE3HaUAt", database="formulario"
+            )
+            cursor = conn.cursor()
+            query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
+            cursor.execute(query, (valor_capturado, datetime.now()))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            print("✅ Gravado no banco!")
+
+        except Exception as e_menu:
+            print(f"❌ Erro na interação com menu/saldo: {e_menu}")
+            # Tira um print para você ver o que o bot está vendo
+            driver.save_screenshot("erro_menu.png")
 
     except Exception as e:
-        print(f"❌ Erro detectado: {e}")
+        print(f"❌ Erro Geral: {e}")
         traceback.print_exc()
 
     finally:
-        if cursor: cursor.close()
-        if conn: conn.close()
-        if driver: driver.quit()
+        if driver:
+            driver.quit()
 
-    print("Dormindo 5 minutos...\n")
+    print("Aguardando 5 minutos...\n")
     sleep(300)
