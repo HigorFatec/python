@@ -10,18 +10,20 @@ from time import sleep
 
 while True:
     driver = None
+    conn = None
+    cursor = None
+
     try:
-        print(f"--- Iniciando Ciclo Anti-Detecção: {datetime.now()} ---")
+        print(f"--- Iniciando Ciclo Anti-Bloqueio: {datetime.now()} ---")
         
         options = uc.ChromeOptions()
-        # Rodar em modo headless no Windows Server às vezes causa detecção, 
-        # então vamos rodar com a janela visível primeiro para garantir.
-        # options.add_argument('--headless') 
+        # Removido o binary_location pois agora está no padrão do C:\
+        # Se quiser rodar sem janela no futuro: options.add_argument('--headless')
         
-        # O UC encontra o Chrome no C:\ sozinho agora
+        # O UC vai encontrar o Chrome no C:\ sozinho agora
         driver = uc.Chrome(options=options)
         
-        # 1. Acesso ao SIAG
+        # 1. Acesso ao SIAG Valecard
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
         wait = WebDriverWait(driver, 30)
 
@@ -34,7 +36,7 @@ while True:
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
 
-        # Espera um pouco mais para o Cloudflare validar
+        # ESPERA ESTRATÉGICA: Dá tempo para o Cloudflare validar o "humano"
         sleep(15) 
 
         # 4. Navegação nos Menus
@@ -51,9 +53,9 @@ while True:
             (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
         ))
         valor_capturado = saldo_elemento.text
-        print(f"✅ Sucesso! Valor capturado: {valor_capturado}")
+        print(f"✅ Saldo Capturado: {valor_capturado}")
 
-        # 6. Banco de Dados
+        # 6. Gravação no MySQL
         conn = mysql.connector.connect(
             host="177.47.11.35", port=14804, user="cargopolo",
             password="9pN2ayXE3HaUAt", database="formulario"
@@ -62,17 +64,16 @@ while True:
         query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
         cursor.execute(query, (valor_capturado, datetime.now()))
         conn.commit()
-        cursor.close()
-        conn.close()
-        print("✅ Dados salvos no MySQL.")
+        print("✅ Dados gravados com sucesso!")
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
+        print(f"❌ Erro detectado: {e}")
         traceback.print_exc()
 
     finally:
-        if driver:
-            driver.quit()
+        if cursor: cursor.close()
+        if conn: conn.close()
+        if driver: driver.quit()
 
     print("Dormindo 5 minutos...\n")
     sleep(300)
