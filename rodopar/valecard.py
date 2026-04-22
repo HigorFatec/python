@@ -1,19 +1,24 @@
 from selenium import webdriver
-from time import sleep
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from selenium.common.exceptions import TimeoutException
-
+from selenium.webdriver.common.action_chains import ActionChains
+from webdriver_manager.firefox import GeckoDriverManager
+from time import sleep
 import mysql.connector
 from datetime import datetime
 import traceback
 
-
-from selenium.webdriver.common.action_chains import ActionChains
-
-import undetected_chromedriver as uc
+# Configurações do Banco de Dados
+DB_CONFIG = {
+    "host": "177.47.11.35",
+    "port": 14804,
+    "user": "cargopolo",
+    "password": "9pN2ayXE3HaUAt",
+    "database": "formulario"
+}
 
 while True:
     driver = None
@@ -21,132 +26,86 @@ while True:
     cursor = None
 
     try:
-        #driver = webdriver.Chrome()
-        # Em vez de webdriver.Chrome(), use:
-        options = uc.ChromeOptions()
+        print(f"Iniciando execução em: {datetime.now()}")
         
-        # 1. DIGA O CAMINHO EXATO DO CHROME NO SERVIDOR (Exemplo abaixo)
-        # Verifique onde está o chrome.exe no seu servidor e coloque aqui:
-        options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+        # 1. Configurações do Firefox para o Servidor
+        firefox_options = Options()
+        # Caminho informado por você
+        firefox_options.binary_location = r"C:\Program Files\Mozilla Firefox\firefox.exe"
         
-        options.add_argument('--start-maximized')
+        # Disfarces para evitar detecção de bot no Firefox
+        firefox_options.set_preference("dom.webdriver.enabled", False)
+        firefox_options.set_preference('useAutomationExtension', False)
         
-        # 2. INICIALIZE PASSANDO O CAMINHO
-        driver = uc.Chrome(options=options)
+        # Define uma resolução fixa para evitar bloqueios do Cloudflare
+        firefox_options.add_argument("--width=1920")
+        firefox_options.add_argument("--height=1080")
 
+        # 2. Inicializa o Driver
+        service = Service(GeckoDriverManager().install())
+        driver = webdriver.Firefox(service=service, options=firefox_options)
 
+        # 3. Navegação Inicial
         driver.get('https://siag.valecard.com.br/frota/pages/start.jsf')
+        wait = WebDriverWait(driver, 30)
 
-        # Aqui você cria o WebDriverWait para este driver:
-        wait = WebDriverWait(driver, 20)
-
-        driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select').click()
-
+        # Seleção do Perfil
+        wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select'))).click()
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[4]/select/option[6]').click()
 
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
+        # Login
+        wait.until(EC.presence_of_element_located((By.NAME, 'formLogin:j_id15')))
         driver.find_element(By.NAME, 'formLogin:j_id15').send_keys('higor.cargopolo')
         driver.find_element(By.NAME, 'formLogin:j_id17').send_keys('@Cargo20')
-
-        # Submeter o formulário
         driver.find_element(By.XPATH, '//*[@id="wrap-geral"]/div[2]/div/div/ul/li[5]/input').click()
 
-        sleep(10)  # Espera a página carregar
-        
-        actions = ActionChains(driver)
+        sleep(10) # Aguarda o dashboard carregar
 
+        # 4. Navegação nos Menus (Simulando Mouse)
         try:
-
-            wait = WebDriverWait(driver, 10)
-
-            # 1️⃣ Espera o menu principal "Alteração" aparecer
-            menu_alteracao = wait.until(
-                EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89"))
-            )
-
-            # 2️⃣ Usa ActionChains para passar o mouse sobre o menu (abrir o dropdown)
+            # Menu "Alteração"
+            menu_alteracao = wait.until(EC.presence_of_element_located((By.ID, "MENU_FORM_HADOUKEN:j_id89")))
             actions = ActionChains(driver)
             actions.move_to_element(menu_alteracao).perform()
 
-            # 3️⃣ Espera o submenu aparecer (por exemplo, "Cancelamento de Cartão")
-            submenu = wait.until(
-                EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']"))
-            )
-
-            #4️⃣ Clica na opção desejada
+            # Submenu
+            submenu = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='MENU_FORM_HADOUKEN:j_id94:icon']")))
             submenu.click()
-            sleep(5)  # Espera a página carregar
-
-            # Localiza o valor após o texto "Saldo Disponível"
-            saldo_disponivel = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
-                )
-            )
-
-            print("Saldo Disponível:", saldo_disponivel.text)
-
-
-            #sleep(1000)
-
-            print("✅ Clique realizado com sucesso no menu Distribuição de Saldo de Filial!")
-        except Exception as e:
-            print("❌ Erro ao clicar no menu:", e)
-            traceback.print_exc()
-
-
-
-        sleep(10)
-
-        try:
-            # Conectar ao MySQL
-            conn = mysql.connector.connect(
-            host="177.47.11.35",
-            port=14804,
-            user="cargopolo",
-            password="9pN2ayXE3HaUAt",
-            database="formulario"
-            )
             
-            cursor = conn.cursor()
+            sleep(5)
 
-            query = """INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"""
+            # Captura do Saldo
+            saldo_element = wait.until(EC.presence_of_element_located(
+                (By.XPATH, "//td[text()='Saldo Disponível']/following-sibling::td[1]")
+            ))
+            valor_saldo = saldo_element.text
+            print(f"Saldo Capturado: {valor_saldo}")
 
-            params = (saldo_disponivel.text, datetime.now())
-            cursor.execute(query, params)
+            # 5. Inserção no Banco de Dados
+            try:
+                conn = mysql.connector.connect(**DB_CONFIG)
+                cursor = conn.cursor()
+                query = "INSERT INTO saldo_combustivel_valecard (valor, data_insercao) VALUES (%s, %s)"
+                cursor.execute(query, (valor_saldo, datetime.now()))
+                conn.commit()
+                print("✅ Saldo inserido no banco com sucesso!")
+            except Exception as db_e:
+                print(f"❌ Erro no Banco de Dados: {db_e}")
+                traceback.print_exc()
 
-            conn.commit()
-
-            print("Saldo inserido com sucesso no banco de dados! Valor:", saldo_disponivel.text)
-            print(datetime.now())
-        except Exception as e:
-            print("Ocorreu um erro ao inserir no banco de dados:", e)
+        except Exception as menu_e:
+            print(f"❌ Erro na navegação interna: {menu_e}")
             traceback.print_exc()
 
-
-        
     except Exception as e:
-        print("Ocorreu um erro:", e)
+        print(f"❌ Erro Geral: {e}")
         traceback.print_exc()
 
     finally:
-        # Fechar conexões e driver, se existirem
-        try:
-            if cursor:
-                cursor.close()
-        except Exception as e:
-            print("Erro ao fechar cursor:", e)
-        try:
-            if conn:
-                conn.close()
-        except Exception as e:
-            print("Erro ao fechar conexão:", e)
-        try:
-            if driver:
-                driver.quit()
-        except Exception as e:
-            print("Erro ao fechar driver:", e)
+        # Encerramento Seguro
+        if cursor: cursor.close()
+        if conn: conn.close()
+        if driver: driver.quit()
 
-    # Espera 5 minutos antes da próxima execução
-    print("Esperando 5 minutos para próxima execução...\n")
+    print("Esperando 5 minutos para a próxima execução...\n")
     sleep(300)
