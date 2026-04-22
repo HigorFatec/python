@@ -24,7 +24,14 @@ while True:
         #driver = webdriver.Chrome()
         # Em vez de webdriver.Chrome(), use:
         options = uc.ChromeOptions()
-        # options.add_argument('--headless') # Se quiser rodar sem janela (pode aumentar detecção)
+        
+        # 1. DIGA O CAMINHO EXATO DO CHROME NO SERVIDOR (Exemplo abaixo)
+        # Verifique onde está o chrome.exe no seu servidor e coloque aqui:
+        options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+        
+        options.add_argument('--start-maximized')
+        
+        # 2. INICIALIZE PASSANDO O CAMINHO
         driver = uc.Chrome(options=options)
 
 
